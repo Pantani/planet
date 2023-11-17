@@ -6,6 +6,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icamodule "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
@@ -51,8 +52,8 @@ func (app *App) registerIBCModules() {
 	for _, m := range []string{
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		icahosttypes.SubModuleName,
 		icacontrollertypes.SubModuleName,
+		icahosttypes.SubModuleName,
 	} {
 		app.ParamsKeeper.Subspace(m)
 	}
@@ -164,12 +165,15 @@ func (app *App) registerIBCModules() {
 	app.ScopedICAHostKeeper = scopedICAHostKeeper
 	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
 
-	app.RegisterModules(
+	if err := app.RegisterModules(
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctransfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
+		capability.NewAppModule(app.appCodec, *app.CapabilityKeeper, false),
 		icamodule.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		ibctm.AppModule{},
 		solomachine.AppModule{},
-	)
+	); err != nil {
+		panic(err)
+	}
 }

@@ -38,4 +38,4 @@ validators:
       rpc:
         laddr: :26659
         pprof_laddr: :6061
-    home: $HOME/.mars
+    home: $HOME/.earth
