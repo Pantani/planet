@@ -23,6 +23,8 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -36,27 +38,25 @@ import (
 func (app *App) registerIBCModules() {
 	// set up non depinject support modules store keys
 	if err := app.RegisterStores(
-		storetypes.NewKVStoreKey(capabilitytypes.StoreKey),
 		storetypes.NewKVStoreKey(ibcexported.StoreKey),
 		storetypes.NewKVStoreKey(ibctransfertypes.StoreKey),
-		storetypes.NewKVStoreKey(ibcfeetypes.StoreKey),
-		storetypes.NewKVStoreKey(icahosttypes.StoreKey),
 		storetypes.NewKVStoreKey(icacontrollertypes.StoreKey),
-		storetypes.NewMemoryStoreKey(capabilitytypes.MemStoreKey),
+		storetypes.NewKVStoreKey(icahosttypes.StoreKey),
+		storetypes.NewKVStoreKey(capabilitytypes.StoreKey),
+		storetypes.NewKVStoreKey(ibcfeetypes.StoreKey),
 		storetypes.NewTransientStoreKey(paramstypes.TStoreKey),
+		storetypes.NewMemoryStoreKey(capabilitytypes.MemStoreKey),
 	); err != nil {
 		panic(err)
 	}
 
-	// set params subspaces
-	for _, m := range []string{
-		ibctransfertypes.ModuleName,
-		ibcexported.ModuleName,
-		icacontrollertypes.SubModuleName,
-		icahosttypes.SubModuleName,
-	} {
-		app.ParamsKeeper.Subspace(m)
-	}
+	// register the key tables for legacy param subspaces
+	keyTable := ibcclienttypes.ParamKeyTable()
+	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
+	app.ParamsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
+	app.ParamsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
+	app.ParamsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
+	app.ParamsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
 
 	// add capability keeper and ScopeToModule for ibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(
@@ -165,12 +165,13 @@ func (app *App) registerIBCModules() {
 	app.ScopedICAHostKeeper = scopedICAHostKeeper
 	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
 
+	// register IBC modules
 	if err := app.RegisterModules(
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctransfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
-		capability.NewAppModule(app.appCodec, *app.CapabilityKeeper, false),
 		icamodule.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		capability.NewAppModule(app.appCodec, *app.CapabilityKeeper, false),
 		ibctm.AppModule{},
 		solomachine.AppModule{},
 	); err != nil {
