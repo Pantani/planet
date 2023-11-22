@@ -14,6 +14,12 @@ accounts:
     coins:
       - 500token
       - 100000000stake
+  - name: hermes
+    coins:
+      - 100000000000token
+      - 100000000000stake
+    mnemonic: diary behind allow lawn loop assault armor survey media toe rural mass
+      skull way crater tobacco pair glare window soon lift pistol fitness annual
 faucet:
   name: bob
   coins:

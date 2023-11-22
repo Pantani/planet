@@ -1,21 +1,27 @@
 version: 1
 accounts:
-- name: alice
-  coins:
-  - 20000token
-  - 200000000stake
-- name: bob
-  coins:
-  - 10000token
-  - 100000000stake
+  - name: alice
+    coins:
+      - 20000token
+      - 200000000stake
+  - name: bob
+    coins:
+      - 10000token
+      - 100000000stake
+  - name: hermes
+    coins:
+      - 100000000000token
+      - 100000000000stake
+    mnemonic: diary behind allow lawn loop assault armor survey media toe rural mass
+      skull way crater tobacco pair glare window soon lift pistol fitness annual
 client:
   openapi:
     path: docs/static/openapi.yml
 faucet:
   name: bob
   coins:
-  - 5token
-  - 100000stake
+    - 5token
+    - 100000stake
 validators:
-- name: alice
-  bonded: 100000000stake
+  - name: alice
+    bonded: 100000000stake
