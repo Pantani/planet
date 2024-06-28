@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"planet/x/blog/types"
+	"github.com/test/planet/x/blog/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {
@@ -40,7 +40,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 				SentPostCount: 2,
-				TimedoutPostList: []types.TimedoutPost{
+				TimeoutPostList: []types.TimeoutPost{
 					{
 						Id: 0,
 					},
@@ -48,7 +48,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						Id: 1,
 					},
 				},
-				TimedoutPostCount: 2,
+				TimeoutPostCount: 2,
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -106,9 +106,9 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "duplicated timedoutPost",
+			desc: "duplicated timeoutPost",
 			genState: &types.GenesisState{
-				TimedoutPostList: []types.TimedoutPost{
+				TimeoutPostList: []types.TimeoutPost{
 					{
 						Id: 0,
 					},
@@ -120,14 +120,14 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "invalid timedoutPost count",
+			desc: "invalid timeoutPost count",
 			genState: &types.GenesisState{
-				TimedoutPostList: []types.TimedoutPost{
+				TimeoutPostList: []types.TimeoutPost{
 					{
 						Id: 1,
 					},
 				},
-				TimedoutPostCount: 0,
+				TimeoutPostCount: 0,
 			},
 			valid: false,
 		},

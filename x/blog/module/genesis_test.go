@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	keepertest "planet/testutil/keeper"
-	"planet/testutil/nullify"
-	"planet/x/blog/module"
-	"planet/x/blog/types"
+	keepertest "github.com/test/planet/testutil/keeper"
+	"github.com/test/planet/testutil/nullify"
+	blog "github.com/test/planet/x/blog/module"
+	"github.com/test/planet/x/blog/types"
 )
 
 func TestGenesis(t *testing.T) {
@@ -32,7 +32,7 @@ func TestGenesis(t *testing.T) {
 			},
 		},
 		SentPostCount: 2,
-		TimedoutPostList: []types.TimedoutPost{
+		TimeoutPostList: []types.TimeoutPost{
 			{
 				Id: 0,
 			},
@@ -40,11 +40,11 @@ func TestGenesis(t *testing.T) {
 				Id: 1,
 			},
 		},
-		TimedoutPostCount: 2,
+		TimeoutPostCount: 2,
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	k, ctx := keepertest.BlogKeeper(t)
+	k, ctx, _ := keepertest.BlogKeeper(t)
 	blog.InitGenesis(ctx, k, genesisState)
 	got := blog.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
@@ -58,7 +58,7 @@ func TestGenesis(t *testing.T) {
 	require.Equal(t, genesisState.PostCount, got.PostCount)
 	require.ElementsMatch(t, genesisState.SentPostList, got.SentPostList)
 	require.Equal(t, genesisState.SentPostCount, got.SentPostCount)
-	require.ElementsMatch(t, genesisState.TimedoutPostList, got.TimedoutPostList)
-	require.Equal(t, genesisState.TimedoutPostCount, got.TimedoutPostCount)
+	require.ElementsMatch(t, genesisState.TimeoutPostList, got.TimeoutPostList)
+	require.Equal(t, genesisState.TimeoutPostCount, got.TimeoutPostCount)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

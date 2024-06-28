@@ -1,0 +1,12 @@
+syntax = "proto3";
+package planet.blog.v1;
+
+option go_package = "github.com/test/planet/x/blog/types";
+
+message SentPost {
+  uint64 id = 1;
+  uint64 postId = 2; 
+  string title = 3; 
+  string chain = 4; 
+  
+}

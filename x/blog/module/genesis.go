@@ -3,33 +3,45 @@ package blog
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"planet/x/blog/keeper"
-	"planet/x/blog/types"
+	"github.com/test/planet/x/blog/keeper"
+	"github.com/test/planet/x/blog/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the post
 	for _, elem := range genState.PostList {
-		k.SetPost(ctx, elem)
+		if err := k.Post.Set(ctx, elem.Id, elem); err != nil {
+			panic(err)
+		}
 	}
 
 	// Set post count
-	k.SetPostCount(ctx, genState.PostCount)
+	if err := k.PostSeq.Set(ctx, genState.PostCount); err != nil {
+		panic(err)
+	}
 	// Set all the sentPost
 	for _, elem := range genState.SentPostList {
-		k.SetSentPost(ctx, elem)
+		if err := k.SentPost.Set(ctx, elem.Id, elem); err != nil {
+			panic(err)
+		}
 	}
 
 	// Set sentPost count
-	k.SetSentPostCount(ctx, genState.SentPostCount)
-	// Set all the timedoutPost
-	for _, elem := range genState.TimedoutPostList {
-		k.SetTimedoutPost(ctx, elem)
+	if err := k.SentPostSeq.Set(ctx, genState.SentPostCount); err != nil {
+		panic(err)
+	}
+	// Set all the timeoutPost
+	for _, elem := range genState.TimeoutPostList {
+		if err := k.TimeoutPost.Set(ctx, elem.Id, elem); err != nil {
+			panic(err)
+		}
 	}
 
-	// Set timedoutPost count
-	k.SetTimedoutPostCount(ctx, genState.TimedoutPostCount)
+	// Set timeoutPost count
+	if err := k.TimeoutPostSeq.Set(ctx, genState.TimeoutPostCount); err != nil {
+		panic(err)
+	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetPort(ctx, genState.PortId)
 	// Only try to bind to port if it is not already bound, since we may already own
@@ -42,21 +54,62 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			panic("could not claim port capability: " + err.Error())
 		}
 	}
-	k.SetParams(ctx, genState.Params)
+	if err := k.Params.Set(ctx, genState.Params); err != nil {
+		panic(err)
+	}
 }
 
 // ExportGenesis returns the module's exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+	var err error
+
 	genesis := types.DefaultGenesis()
-	genesis.Params = k.GetParams(ctx)
+	genesis.Params, err = k.Params.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
 
 	genesis.PortId = k.GetPort(ctx)
-	genesis.PostList = k.GetAllPost(ctx)
-	genesis.PostCount = k.GetPostCount(ctx)
-	genesis.SentPostList = k.GetAllSentPost(ctx)
-	genesis.SentPostCount = k.GetSentPostCount(ctx)
-	genesis.TimedoutPostList = k.GetAllTimedoutPost(ctx)
-	genesis.TimedoutPostCount = k.GetTimedoutPostCount(ctx)
+
+	err = k.Post.Walk(ctx, nil, func(key uint64, elem types.Post) (bool, error) {
+		genesis.PostList = append(genesis.PostList, elem)
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	genesis.PostCount, err = k.PostSeq.Peek(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	err = k.SentPost.Walk(ctx, nil, func(key uint64, elem types.SentPost) (bool, error) {
+		genesis.SentPostList = append(genesis.SentPostList, elem)
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	genesis.SentPostCount, err = k.SentPostSeq.Peek(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	err = k.TimeoutPost.Walk(ctx, nil, func(key uint64, elem types.TimeoutPost) (bool, error) {
+		genesis.TimeoutPostList = append(genesis.TimeoutPostList, elem)
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	genesis.TimeoutPostCount, err = k.TimeoutPostSeq.Peek(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

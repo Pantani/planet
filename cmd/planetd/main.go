@@ -6,8 +6,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"planet/app"
-	"planet/cmd/planetd/cmd"
+	"github.com/test/planet/app"
+	"github.com/test/planet/cmd/planetd/cmd"
 )
 
 func main() {

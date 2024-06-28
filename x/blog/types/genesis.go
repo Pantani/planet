@@ -1,20 +1,22 @@
 package types
 
 import (
+
+	// DefaultIndex is the default global index
 	"fmt"
+
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
-// DefaultIndex is the default global index
 const DefaultIndex uint64 = 1
 
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		PortId:           PortID,
-		PostList:         []Post{},
-		SentPostList:     []SentPost{},
-		TimedoutPostList: []TimedoutPost{},
+		PortId:          PortID,
+		PostList:        []Post{},
+		SentPostList:    []SentPost{},
+		TimeoutPostList: []TimeoutPost{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -50,17 +52,17 @@ func (gs GenesisState) Validate() error {
 		}
 		sentPostIdMap[elem.Id] = true
 	}
-	// Check for duplicated ID in timedoutPost
-	timedoutPostIdMap := make(map[uint64]bool)
-	timedoutPostCount := gs.GetTimedoutPostCount()
-	for _, elem := range gs.TimedoutPostList {
-		if _, ok := timedoutPostIdMap[elem.Id]; ok {
-			return fmt.Errorf("duplicated id for timedoutPost")
+	// Check for duplicated ID in timeoutPost
+	timeoutPostIdMap := make(map[uint64]bool)
+	timeoutPostCount := gs.GetTimeoutPostCount()
+	for _, elem := range gs.TimeoutPostList {
+		if _, ok := timeoutPostIdMap[elem.Id]; ok {
+			return fmt.Errorf("duplicated id for timeoutPost")
 		}
-		if elem.Id >= timedoutPostCount {
-			return fmt.Errorf("timedoutPost id should be lower or equal than the last id")
+		if elem.Id >= timeoutPostCount {
+			return fmt.Errorf("timeoutPost id should be lower or equal than the last id")
 		}
-		timedoutPostIdMap[elem.Id] = true
+		timeoutPostIdMap[elem.Id] = true
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

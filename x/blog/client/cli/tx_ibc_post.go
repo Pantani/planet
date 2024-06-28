@@ -8,12 +8,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	channelutils "github.com/cosmos/ibc-go/v8/modules/core/04-channel/client/utils"
 	"github.com/spf13/cobra"
-	"planet/x/blog/types"
+	"github.com/test/planet/x/blog/types"
 )
 
 var _ = strconv.Itoa(0)
 
+// CmdSendIbcPost() returns the IbcPost send packet command.
+// This command does not use AutoCLI because it gives a better UX to do not.
 func CmdSendIbcPost() *cobra.Command {
+	flagPacketTimeoutTimestamp := "packet-timeout-timestamp"
+
 	cmd := &cobra.Command{
 		Use:   "send-ibc-post [src-port] [src-channel] [title] [content]",
 		Short: "Send a ibcPost over IBC",
@@ -45,9 +49,7 @@ func CmdSendIbcPost() *cobra.Command {
 			}
 
 			msg := types.NewMsgSendIbcPost(creator, srcPort, srcChannel, timeoutTimestamp, argTitle, argContent)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "blog"
@@ -18,29 +20,29 @@ const (
 )
 
 var (
-	ParamsKey = []byte("p_blog")
+	ParamsKey = collections.NewPrefix("p_blog")
 )
 
 var (
 	// PortKey defines the key to store the port ID in store
-	PortKey = KeyPrefix("blog-port-")
+	PortKey = collections.NewPrefix("blog-port-")
 )
 
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
 
-const (
-	PostKey      = "Post/value/"
-	PostCountKey = "Post/count/"
+var (
+	PostKey      = collections.NewPrefix("post/value/")
+	PostCountKey = collections.NewPrefix("post/count/")
 )
 
-const (
-	SentPostKey      = "SentPost/value/"
-	SentPostCountKey = "SentPost/count/"
+var (
+	SentPostKey      = collections.NewPrefix("sentpost/value/")
+	SentPostCountKey = collections.NewPrefix("sentpost/count/")
 )
 
-const (
-	TimedoutPostKey      = "TimedoutPost/value/"
-	TimedoutPostCountKey = "TimedoutPost/count/"
+var (
+	TimeoutPostKey      = collections.NewPrefix("timeoutpost/value/")
+	TimeoutPostCountKey = collections.NewPrefix("timeoutpost/count/")
 )

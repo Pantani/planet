@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
@@ -24,10 +25,10 @@ import (
 
 	// this line is used by starport scaffolding # 1
 
-	modulev1 "planet/api/planet/blog/module"
-	"planet/x/blog/client/cli"
-	"planet/x/blog/keeper"
-	"planet/x/blog/types"
+	modulev1 "github.com/test/planet/api/planet/blog/module/v1"
+	"github.com/test/planet/x/blog/client/cli"
+	"github.com/test/planet/x/blog/keeper"
+	"github.com/test/planet/x/blog/types"
 )
 
 var (
@@ -40,7 +41,7 @@ var (
 	_ appmodule.AppModule       = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker = (*AppModule)(nil)
 	_ appmodule.HasEndBlocker   = (*AppModule)(nil)
-	_ porttypes.IBCModule       = IBCModule{}
+	_ porttypes.IBCModule       = (*IBCModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -93,16 +94,10 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	}
 }
 
-// GetTxCmd returns the root Tx command for the module. The subcommands of
-// this root command are used by end-users to generate new transactions
-// containing messages defined in the module.
+// GetTxCmd returns the root Tx command for the module.
+// These commands enrich the AutoCLI tx commands.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
-}
-
-// GetQueryCmd returns the root query command for the module. The subcommands of this root command are used by end-users to generate new queries to the subset of the state defined by the module
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
 }
 
 // ----------------------------------------------------------------------------
@@ -135,7 +130,7 @@ func NewAppModule(
 // RegisterServices registers a gRPC query service to respond to the module-specific gRPC queries
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 }
 
 // RegisterInvariants registers the invariants of the module. If an invariant deviates from its predicted value, the InvariantRegistry triggers appropriate logic (most often the chain will be halted)
@@ -190,9 +185,10 @@ func init() {
 	)
 }
 
-type BlogInputs struct {
+type ModuleInputs struct {
 	depinject.In
 
+	AddressCodec address.Codec
 	StoreService store.KVStoreService
 	Cdc          codec.Codec
 	Config       *modulev1.Module
@@ -205,14 +201,14 @@ type BlogInputs struct {
 	CapabilityScopedFn func(string) capabilitykeeper.ScopedKeeper `optional:"true"`
 }
 
-type BlogOutputs struct {
+type ModuleOutputs struct {
 	depinject.Out
 
 	BlogKeeper keeper.Keeper
 	Module     appmodule.AppModule
 }
 
-func ProvideModule(in BlogInputs) BlogOutputs {
+func ProvideModule(in ModuleInputs) ModuleOutputs {
 	// default to governance authority if not provided
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	if in.Config.Authority != "" {
@@ -220,6 +216,7 @@ func ProvideModule(in BlogInputs) BlogOutputs {
 	}
 	k := keeper.NewKeeper(
 		in.Cdc,
+		in.AddressCodec,
 		in.StoreService,
 		in.Logger,
 		authority.String(),
@@ -233,5 +230,5 @@ func ProvideModule(in BlogInputs) BlogOutputs {
 		in.BankKeeper,
 	)
 
-	return BlogOutputs{BlogKeeper: k, Module: m}
+	return ModuleOutputs{BlogKeeper: k, Module: m}
 }

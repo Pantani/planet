@@ -2,35 +2,29 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
-	"cosmossdk.io/store/prefix"
-	"github.com/cosmos/cosmos-sdk/runtime"
+	"cosmossdk.io/collections"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/test/planet/x/blog/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"planet/x/blog/types"
 )
 
-func (k Keeper) SentPostAll(ctx context.Context, req *types.QueryAllSentPostRequest) (*types.QueryAllSentPostResponse, error) {
+func (q queryServer) ListSentPost(ctx context.Context, req *types.QueryAllSentPostRequest) (*types.QueryAllSentPostResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var sentPosts []types.SentPost
-
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	sentPostStore := prefix.NewStore(store, types.KeyPrefix(types.SentPostKey))
-
-	pageRes, err := query.Paginate(sentPostStore, req.Pagination, func(key []byte, value []byte) error {
-		var sentPost types.SentPost
-		if err := k.cdc.Unmarshal(value, &sentPost); err != nil {
-			return err
-		}
-
-		sentPosts = append(sentPosts, sentPost)
-		return nil
-	})
+	sentPosts, pageRes, err := query.CollectionPaginate(
+		ctx,
+		q.k.SentPost,
+		req.Pagination,
+		func(_ uint64, value types.SentPost) (types.SentPost, error) {
+			return value, nil
+		},
+	)
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -39,14 +33,18 @@ func (k Keeper) SentPostAll(ctx context.Context, req *types.QueryAllSentPostRequ
 	return &types.QueryAllSentPostResponse{SentPost: sentPosts, Pagination: pageRes}, nil
 }
 
-func (k Keeper) SentPost(ctx context.Context, req *types.QueryGetSentPostRequest) (*types.QueryGetSentPostResponse, error) {
+func (q queryServer) GetSentPost(ctx context.Context, req *types.QueryGetSentPostRequest) (*types.QueryGetSentPostResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	sentPost, found := k.GetSentPost(ctx, req.Id)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
+	sentPost, err := q.k.SentPost.Get(ctx, req.Id)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return nil, sdkerrors.ErrKeyNotFound
+		}
+
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &types.QueryGetSentPostResponse{SentPost: sentPost}, nil

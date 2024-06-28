@@ -11,8 +11,9 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"planet/x/blog/keeper"
-	"planet/x/blog/types"
+	
+	"github.com/test/planet/x/blog/keeper"
+	"github.com/test/planet/x/blog/types"
 )
 
 // IBCModule implements the ICS26 interface for interchain accounts host chains
@@ -68,7 +69,6 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-
 	// Require portID is the portID module is bound to
 	boundPort := im.keeper.GetPort(ctx)
 	if boundPort != portID {
@@ -143,8 +143,6 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	var ack channeltypes.Acknowledgement
 
-	// this line is used by starport scaffolding # oracle/packet/module/recv
-
 	var modulePacketData types.BlogPacketData
 	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error()))
@@ -192,8 +190,6 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
 	}
-
-	// this line is used by starport scaffolding # oracle/packet/module/ack
 
 	var modulePacketData types.BlogPacketData
 	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
